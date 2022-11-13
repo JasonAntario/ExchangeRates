@@ -1,7 +1,8 @@
-package com.dsankovsky.exchangerates
+package com.dsankovsky.exchangerates.presentation
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.dsankovsky.exchangerates.R
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
