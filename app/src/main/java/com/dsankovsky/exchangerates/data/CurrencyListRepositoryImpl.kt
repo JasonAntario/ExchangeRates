@@ -1,6 +1,6 @@
 package com.dsankovsky.exchangerates.data
 
-import android.content.Context
+import android.app.Application
 import com.dsankovsky.exchangerates.BuildConfig
 import com.dsankovsky.exchangerates.data.database.AppDatabase
 import com.dsankovsky.exchangerates.data.mapper.CurrencyMapper
@@ -11,19 +11,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class CurrencyListRepositoryImpl(
-    private val mapper: CurrencyMapper,
-    private val context: Context
+    application: Application
 ) : CurrencyListRepository {
 
-    private val currencyInfoDao = AppDatabase.getInstance(context).currencyInfoDao()
+    private val currencyInfoDao = AppDatabase.getInstance(application).currencyInfoDao()
     private val apiService = ApiFactory.apiService
+    private val mapper = CurrencyMapper()
 
     override suspend fun fetchCurrencyList(baseCurrency: String) {
-        val result = apiService.getLatestExchangeRates(BuildConfig.API_KEY, baseCurrency)
-        currencyInfoDao.insertCurrencyList(mapper.mapDtoToListDbModel(result))
+        try {
+            val result = apiService.getLatestExchangeRates(BuildConfig.API_KEY, baseCurrency)
+            currencyInfoDao.insertCurrencyList(mapper.mapDtoToListDbModel(result))
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
     }
 
-    override suspend fun getCurrencyList(): Flow<List<CurrencyInfo>> {
+    override fun getCurrencyList(): Flow<List<CurrencyInfo>> {
         return currencyInfoDao.getCurrencyList().map {
             it.map { item ->
                 mapper.mapDbModelToEntity(item)
@@ -31,7 +35,7 @@ class CurrencyListRepositoryImpl(
         }
     }
 
-    override fun updateCurrencyInfo(currencyInfo: CurrencyInfo) {
+    override suspend fun updateCurrencyInfo(currencyInfo: CurrencyInfo) {
         currencyInfoDao.updateCurrencyInfo(mapper.mapEntityToDbModel(currencyInfo))
     }
 

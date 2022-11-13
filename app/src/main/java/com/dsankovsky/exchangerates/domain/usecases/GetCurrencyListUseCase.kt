@@ -5,5 +5,5 @@ import com.dsankovsky.exchangerates.domain.CurrencyListRepository
 class GetCurrencyListUseCase(
     private val repository: CurrencyListRepository
 ) {
-    suspend operator fun invoke() = repository.getCurrencyList()
+    operator fun invoke() = repository.getCurrencyList()
 }

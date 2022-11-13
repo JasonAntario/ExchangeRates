@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.Flow
 interface CurrencyInfoDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCurrencyList(currencyList: List<CurrencyInfoDbModel>)
+    fun insertCurrencyList(currencyList: List<CurrencyInfoDbModel>)
 
     @Query("SELECT * FROM currency_info_list")
-    suspend fun getCurrencyList(): Flow<List<CurrencyInfoDbModel>>
+    fun getCurrencyList(): Flow<List<CurrencyInfoDbModel>>
 
     @Update
     fun updateCurrencyInfo(currencyInfoDbModel: CurrencyInfoDbModel)
