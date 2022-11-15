@@ -2,28 +2,41 @@ package com.dsankovsky.exchangerates.presentation
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.coroutineScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.dsankovsky.exchangerates.R
+import com.dsankovsky.exchangerates.data.mapper.Constants
 import com.dsankovsky.exchangerates.databinding.ActivityMainBinding
+import com.dsankovsky.exchangerates.domain.models.FilterFavorite
+import com.dsankovsky.exchangerates.domain.models.FilterPopular
 import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : AppCompatActivity() {
 
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
-    private var adapter: CurrencyListAdapter? = null
+    private var rvAdapter: CurrencyListAdapter? = null
+    private var currencyDropDownAdapter: ArrayAdapter<String>? = null
+    private var filterDropDownAdapter: ArrayAdapter<String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        adapter = CurrencyListAdapter()
-        adapter?.onFavoriteClickListener = {
+        initRecyclerView()
+        initSubscriptions()
+        initFilterDropDownMenu()
+    }
+
+    private fun initRecyclerView() {
+        rvAdapter = CurrencyListAdapter()
+        rvAdapter?.onFavoriteClickListener = {
             viewModel.updateCurrencyInfo(it)
         }
-        binding.recyclerView.adapter = adapter
+        binding.recyclerView.adapter = rvAdapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.addItemDecoration(
             DividerItemDecoration(
@@ -31,22 +44,57 @@ class MainActivity : AppCompatActivity() {
                 DividerItemDecoration.VERTICAL
             )
         )
-        initSubscriptions()
+        binding.bottomNavView.setOnItemSelectedListener {
+            when(it.itemId){
+                R.id.menu_popular -> {
+                    viewModel.updateFilter(FilterPopular())
+                    return@setOnItemSelectedListener true
+                }
+                R.id.menu_favourites -> {
+                    viewModel.updateFilter(FilterFavorite())
+                    return@setOnItemSelectedListener true
+                } else -> {
+                    return@setOnItemSelectedListener false
+                }
+            }
+        }
+    }
+
+    private fun initCurrencyDropDownMenu(items: List<String>) {
+        if (items.isEmpty())
+            return
+        if (currencyDropDownAdapter != null)
+            return
+        currencyDropDownAdapter = ArrayAdapter(
+            this@MainActivity,
+            R.layout.item_dropdown,
+            items
+        )
+        binding.dropdownMenu.setAdapter(currencyDropDownAdapter)
+        binding.dropdownMenu.setOnItemClickListener { adapterView, view, i, l ->
+            viewModel.fetchCurrencyList(items[i])
+        }
+    }
+
+    private fun initFilterDropDownMenu() {
+        filterDropDownAdapter = ArrayAdapter(
+            this@MainActivity,
+            R.layout.item_dropdown,
+            Constants.filters
+        )
+        binding.dropdownFilter.setAdapter(filterDropDownAdapter)
+        binding.dropdownFilter.setOnItemClickListener { adapterView, view, i, l ->
+            Log.i(TAG, "initFilterDropDownMenu: $i")
+            viewModel.updateFilterSorting(Constants.filters[i])
+        }
     }
 
     private fun initSubscriptions() {
-//        lifecycleScope.launch {
-//            repeatOnLifecycle(Lifecycle.State.STARTED){
-//                viewModel.stateF.collect{
-//                    adapter?.submitList(it)
-//                }
-//            }
-//        }
-
         lifecycle.coroutineScope.launchWhenStarted {
             viewModel.currencyList.collectLatest {
-                adapter?.submitList(it)
-                Log.i(TAG, "currencies list: $it")
+                rvAdapter?.submitList(it)
+                initCurrencyDropDownMenu(it.map { item -> item.name })
+                Log.i(TAG, "currencies list: ${it.size}")
             }
         }
     }

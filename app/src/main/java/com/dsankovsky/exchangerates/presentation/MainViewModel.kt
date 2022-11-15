@@ -4,43 +4,51 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsankovsky.exchangerates.data.CurrencyListRepositoryImpl
+import com.dsankovsky.exchangerates.data.mapper.Constants
 import com.dsankovsky.exchangerates.domain.models.CurrencyInfo
+import com.dsankovsky.exchangerates.domain.models.Filter
 import com.dsankovsky.exchangerates.domain.usecases.FetchCurrencyListUseCase
-import com.dsankovsky.exchangerates.domain.usecases.GetCurrencyListUseCase
 import com.dsankovsky.exchangerates.domain.usecases.UpdateCurrencyInfoUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class MainViewModel(application: Application): AndroidViewModel(application) {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = CurrencyListRepositoryImpl(application)
 
     private val fetchCurrencyListUseCase = FetchCurrencyListUseCase(repository)
-    private val getCurrencyListUseCase = GetCurrencyListUseCase(repository)
     private val updateCurrencyInfoUseCase = UpdateCurrencyInfoUseCase(repository)
 
-    val currencyList = getCurrencyListUseCase()
-
-    val stateF = MutableStateFlow<List<CurrencyInfo>>(emptyList())
+    private val _currencyList = MutableStateFlow<List<CurrencyInfo>>(emptyList())
+    val currencyList = _currencyList.asStateFlow()
 
     init {
-//        fetchCurrencyList("usd")
+        fetchCurrencyList(Constants.DEFAULT_CURRENCY)
         viewModelScope.launch {
-            getCurrencyListUseCase().collectLatest {
-                stateF.value = it
+            repository.getList().collectLatest {
+                _currencyList.tryEmit(it)
             }
         }
     }
 
-    private fun fetchCurrencyList(baseCurrency: String){
+    fun updateFilter(filter: Filter) {
+        repository.setFilter(filter)
+    }
+
+    fun updateFilterSorting(filter: String) {
+        repository.setFilterSorting(filter)
+    }
+
+    fun fetchCurrencyList(baseCurrency: String) {
         viewModelScope.launch(Dispatchers.IO) {
             fetchCurrencyListUseCase(baseCurrency)
         }
     }
 
-    fun updateCurrencyInfo(currencyInfo: CurrencyInfo){
+    fun updateCurrencyInfo(currencyInfo: CurrencyInfo) {
         viewModelScope.launch(Dispatchers.IO) {
             updateCurrencyInfoUseCase(currencyInfo.copy(isFavourite = !currencyInfo.isFavourite))
         }
