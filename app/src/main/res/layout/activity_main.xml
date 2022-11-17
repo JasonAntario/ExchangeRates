@@ -8,9 +8,9 @@
 
     <LinearLayout
         android:id="@+id/top_panel"
-        android:baselineAligned="false"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:baselineAligned="false"
         android:divider="@drawable/ll_divider_vertical"
         android:orientation="horizontal"
         android:padding="16dp"
@@ -25,9 +25,10 @@
             android:hint="@string/message_choose_currency">
 
             <AutoCompleteTextView
-                android:id="@+id/dropdown_menu"
+                android:id="@+id/dropdown_currencies"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:freezesText="false"
                 android:inputType="none"
                 android:text="@string/default_currency_name" />
 
@@ -42,6 +43,7 @@
                 android:id="@+id/dropdown_filter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:freezesText="false"
                 android:inputType="none"
                 android:text="@string/message_filter" />
 

@@ -1,10 +1,6 @@
 package com.dsankovsky.exchangerates.data.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import com.dsankovsky.exchangerates.data.models.CurrencyInfoDbModel
 import kotlinx.coroutines.flow.Flow
 

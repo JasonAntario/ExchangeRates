@@ -5,10 +5,11 @@ import com.dsankovsky.exchangerates.data.mapper.Constants.UNDEFINED_ID
 import com.dsankovsky.exchangerates.data.models.CurrencyInfoDbModel
 import com.dsankovsky.exchangerates.data.models.NetworkResponseDto
 import com.dsankovsky.exchangerates.domain.models.CurrencyInfo
+import javax.inject.Inject
 
-class CurrencyMapper {
+class CurrencyMapper @Inject constructor() {
 
-    companion object{
+    companion object {
         private const val TAG = "Mapper"
     }
 

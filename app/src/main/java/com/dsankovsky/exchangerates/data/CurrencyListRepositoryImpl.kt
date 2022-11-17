@@ -1,9 +1,8 @@
 package com.dsankovsky.exchangerates.data
 
-import android.app.Application
 import android.util.Log
 import com.dsankovsky.exchangerates.BuildConfig
-import com.dsankovsky.exchangerates.data.database.AppDatabase
+import com.dsankovsky.exchangerates.data.database.CurrencyInfoDao
 import com.dsankovsky.exchangerates.data.mapper.Constants
 import com.dsankovsky.exchangerates.data.mapper.CurrencyMapper
 import com.dsankovsky.exchangerates.data.network.ApiFactory
@@ -11,18 +10,18 @@ import com.dsankovsky.exchangerates.domain.CurrencyListRepository
 import com.dsankovsky.exchangerates.domain.models.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class CurrencyListRepositoryImpl(
-    application: Application
+class CurrencyListRepositoryImpl @Inject constructor(
+    private val currencyInfoDao: CurrencyInfoDao,
+    private val mapper: CurrencyMapper
 ) : CurrencyListRepository {
 
-    companion object{
+    companion object {
         private const val TAG = "RepositoryImpl"
     }
 
-    private val currencyInfoDao = AppDatabase.getInstance(application).currencyInfoDao()
     private val apiService = ApiFactory.apiService
-    private val mapper = CurrencyMapper()
 
     private var _filterCategory = MutableStateFlow<Filter>(FilterPopular())
 
@@ -32,7 +31,7 @@ class CurrencyListRepositoryImpl(
         _filterCategory.tryEmit(filter)
     }
 
-    fun setFilterSorting(sorting: String){
+    fun setFilterSorting(sorting: String) {
         val currentFilter = _filterCategory.value.copy()
         currentFilter.sortType = sorting
         Log.i(TAG, "setFilterSorting: ${currentFilter.sortType}")
@@ -41,7 +40,7 @@ class CurrencyListRepositoryImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getList(): Flow<List<CurrencyInfo>> {
-        val result = _filterCategory.flatMapLatest { filter ->
+        return _filterCategory.flatMapLatest { filter ->
             when (filter) {
                 is FilterFavorite -> {
                     Log.i(TAG, "getList: FAV ${filter.sortType}")
@@ -68,12 +67,13 @@ class CurrencyListRepositoryImpl(
                     }
                 }
             }
-        }
-
-        return result.map {
+        }.map {
+            Log.e(TAG, "getList: $it")
             it.map { item ->
                 mapper.mapDbModelToEntity(item)
             }
+        }.catch { e ->
+            e.printStackTrace()
         }
     }
 

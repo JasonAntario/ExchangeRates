@@ -14,16 +14,28 @@ import com.dsankovsky.exchangerates.databinding.ActivityMainBinding
 import com.dsankovsky.exchangerates.domain.models.FilterFavorite
 import com.dsankovsky.exchangerates.domain.models.FilterPopular
 import kotlinx.coroutines.flow.collectLatest
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private val viewModel: MainViewModel by lazy {
+        ViewModelProvider(
+            this,
+            viewModelFactory
+        )[MainViewModel::class.java]
+    }
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
+    private val component by lazy { (application as App).component }
+
     private var rvAdapter: CurrencyListAdapter? = null
     private var currencyDropDownAdapter: ArrayAdapter<String>? = null
     private var filterDropDownAdapter: ArrayAdapter<String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        component.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         initRecyclerView()
@@ -45,7 +57,7 @@ class MainActivity : AppCompatActivity() {
             )
         )
         binding.bottomNavView.setOnItemSelectedListener {
-            when(it.itemId){
+            when (it.itemId) {
                 R.id.menu_popular -> {
                     viewModel.updateFilter(FilterPopular())
                     return@setOnItemSelectedListener true
@@ -53,7 +65,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_favourites -> {
                     viewModel.updateFilter(FilterFavorite())
                     return@setOnItemSelectedListener true
-                } else -> {
+                }
+                else -> {
                     return@setOnItemSelectedListener false
                 }
             }
@@ -70,8 +83,9 @@ class MainActivity : AppCompatActivity() {
             R.layout.item_dropdown,
             items
         )
-        binding.dropdownMenu.setAdapter(currencyDropDownAdapter)
-        binding.dropdownMenu.setOnItemClickListener { adapterView, view, i, l ->
+        binding.dropdownCurrencies.freezesText = false
+        binding.dropdownCurrencies.setAdapter(currencyDropDownAdapter)
+        binding.dropdownCurrencies.setOnItemClickListener { adapterView, view, i, l ->
             viewModel.fetchCurrencyList(items[i])
         }
     }

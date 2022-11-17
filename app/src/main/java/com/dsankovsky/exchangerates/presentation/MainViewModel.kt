@@ -1,12 +1,10 @@
 package com.dsankovsky.exchangerates.presentation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsankovsky.exchangerates.data.CurrencyListRepositoryImpl
 import com.dsankovsky.exchangerates.data.mapper.Constants
-import com.dsankovsky.exchangerates.domain.models.CurrencyInfo
-import com.dsankovsky.exchangerates.domain.models.Filter
+import com.dsankovsky.exchangerates.domain.models.*
 import com.dsankovsky.exchangerates.domain.usecases.FetchCurrencyListUseCase
 import com.dsankovsky.exchangerates.domain.usecases.UpdateCurrencyInfoUseCase
 import kotlinx.coroutines.Dispatchers
@@ -14,13 +12,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = CurrencyListRepositoryImpl(application)
-
-    private val fetchCurrencyListUseCase = FetchCurrencyListUseCase(repository)
-    private val updateCurrencyInfoUseCase = UpdateCurrencyInfoUseCase(repository)
+class MainViewModel @Inject constructor(
+    private val repository: CurrencyListRepositoryImpl,
+    private val fetchCurrencyListUseCase: FetchCurrencyListUseCase,
+    private val updateCurrencyInfoUseCase: UpdateCurrencyInfoUseCase
+) : ViewModel() {
 
     private val _currencyList = MutableStateFlow<List<CurrencyInfo>>(emptyList())
     val currencyList = _currencyList.asStateFlow()
