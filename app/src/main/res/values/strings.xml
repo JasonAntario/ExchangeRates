@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">ExchangeRates</string>
+    <string name="menu_popular">Popular</string>
+    <string name="menu_favourites">Favourites</string>
+    <string name="message_choose_currency">Choose currency</string>
+    <string name="message_filter">Filter</string>
+    <string name="default_currency_name">USD</string>
+    <string name="filter_name">By name</string>
+    <string name="filter_amount">By amount</string>
 </resources>
